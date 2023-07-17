@@ -1,11 +1,11 @@
-from flask import Flask, request, jsonify,send_file
+from flask import Flask, request, jsonify
 from passlib.hash import sha256_crypt
 import jwt
+import db_conn
 from db_conn import *
 
 
 app = Flask(__name__)
-
 
 @app.route('/')
 def hello():
@@ -15,29 +15,30 @@ def hello():
 def register():
     body = request.json
     phone_num = body['number']
-    user_name = body['username']
+    email = body['email']
     password = body['password']
-
+    company = body['company']
     # Check if the username is already registered
-    existing_user = users_collection.find_one({"username": user_name})
+    existing_user = users_collection.find_one({"email": email})
     if existing_user:
         return jsonify({
-            "message": "Username already exists"
+            "message": "Email address already exists"
         }), 409
 
     #Hashing password
     db_password = sha256_crypt.encrypt(password)
 
     #Validating credentials
-    if phone_num == "" or user_name == "" or password == "":
+    if phone_num == "" or email == "" or password == "":
         return jsonify({
             "message":"Error adding user"
         }),500
     else:
         document = {
-            "username":user_name,
+            "username":email,
             "password":db_password,
-            "phone":phone_num
+            "phone":phone_num,
+            "company":company
         }
         result = users_collection.insert_one(document)
         return jsonify(
@@ -77,6 +78,19 @@ def login():
                     return jsonify({"message": "Invalid username or password"}), 409
     else:
         return jsonify({"message": "Failed to login"}), 409
+
+@app.route('/products')
+def getProducts():
+    category = request.args.get('category')
+    products = list(db_conn.products_collection.find({'category': category}))
+    serialized_products = []
+    for product in products:
+        serialized_products.append({
+            'name':product['name'],
+            'image':product['image'],
+            'category':product['category']
+        })
+    return jsonify(serialized_products)
 
 
 

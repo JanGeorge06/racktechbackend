@@ -15,3 +15,4 @@ except Exception as e:
 #DB Collections
 db = client['racktech']
 users_collection = db['users']
+products_collection = db['products']
