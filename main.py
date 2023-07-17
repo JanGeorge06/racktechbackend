@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from passlib.hash import sha256_crypt
-import jwt
+from jwt_token import generate_token
 import db_conn
 from db_conn import *
 
@@ -35,45 +35,45 @@ def register():
         }),500
     else:
         document = {
-            "username":email,
+            "email":email,
             "password":db_password,
             "phone":phone_num,
             "company":company
         }
         result = users_collection.insert_one(document)
+        token = generate_token(email)
         return jsonify(
             {
-                "message":"User added successfully"
+                "message":"User added successfully",
+                "token":token
             }
         )
 
 @app.route('/login',methods = ['POST'])
 def login():
     body = request.json
-    username = body['username']
+    email = body['email']
     password = body['password']
 
-    existing_user = users_collection.find_one({"username": username})
-    if not existing_user:
+    existing_user = users_collection.find_one({"email": email})
+    if existing_user==0:
         return jsonify({
-            "message": "Username does not exist"
+            "message": "Email does not exist"
         }), 409
-    document = users_collection.find_one({"username":username})
-    if document:
-        db_pass = document.get("password")
-    if username != "" or password != "":
+    document = users_collection.find_one({"email":email})
+    print(document)
+    db_pass = document["password"]
+    if email != "" or password != "":
             if password:
-                if username and sha256_crypt.verify(password,db_pass):
+                if email and sha256_crypt.verify(password,db_pass):
                     #Generating JWT Token
-                    payload = {
-                        "username":username,
-                    }
-                    secret_key = 'hv7$#VZ#3SyWU&Q9B@Yb#7e!DkfZ%*nJ'
-                    token = jwt.encode(payload, secret_key, algorithm='HS256')
-                    return {
-                        "message":"Login Successfully",
-                        "token" : token
-                    }
+                    token = generate_token(email)
+                    return jsonify(
+                        {
+                            "message": "Login Successfully",
+                            "token": token
+                        }
+                    ),200
                 else:
                     return jsonify({"message": "Invalid username or password"}), 409
     else:
