@@ -92,7 +92,21 @@ def getProducts():
         })
     return jsonify(serialized_products)
 
-
+@app.route('/profile')
+def getProfile():
+    email = request.args.get('email')
+    print(email)
+    user_details = users_collection.find_one({'email':email})
+    email = user_details['email']
+    phone = user_details['phone']
+    company = user_details['company']
+    return jsonify(
+        {
+            "email":email,
+            "phone":phone,
+            "company":company
+        }
+    ), 200
 
 if __name__ == '__main__':
     app.run()
