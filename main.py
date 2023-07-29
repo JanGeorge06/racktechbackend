@@ -79,18 +79,27 @@ def login():
     else:
         return jsonify({"message": "Failed to login"}), 409
 
+
+
 @app.route('/products')
 def getProducts():
+    best_selling = request.args.get('best-seller')
     category = request.args.get('category')
-    products = list(db_conn.products_collection.find({'category': category}))
+    if best_selling == 'yes':
+        products = list(db_conn.products_collection.find({'best-seller':best_selling}))
+    if category:
+        products = list(db_conn.products_collection.find({'category': category}))
     serialized_products = []
     for product in products:
         serialized_products.append({
             'name':product['name'],
             'image':product['image'],
+            'description':product['description'],
             'category':product['category']
         })
+    print(len(serialized_products))
     return jsonify(serialized_products)
+
 
 @app.route('/profile')
 def getProfile():
