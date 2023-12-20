@@ -2,7 +2,7 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
 
-uri = "mongodb+srv://racktech:VdTz3P72rZ6vPQyT@racktech.69lbszd.mongodb.net/?retryWrites=true&w=majority"
+uri = "SECRET!!!"
 # Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
 # Send a ping to confirm a successful connection
